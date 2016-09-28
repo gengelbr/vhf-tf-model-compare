@@ -11,6 +11,7 @@ training_set = tf.contrib.learn.datasets.base.load_csv( has_header=False,
                                                         filename=TRAINING,
                                                         target_column=8,
                                                         target_dtype=np.float64)
+
 test_set = tf.contrib.learn.datasets.base.load_csv( has_header=False,
                                                     filename=TEST,
                                                     target_column=8,
