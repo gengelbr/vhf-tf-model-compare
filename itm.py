@@ -23,4 +23,4 @@ for x in indata:
     elevs = np.insert(elevs,0,x[7] / len(x[9:]),axis=0)
     elevs = np.insert(elevs,0,len(x[9:])-1,axis=0)
     res = itmdll.point_to_point(elevs,10.7,3.0,15.1,0.005,301.0,3500.0,5,1,0.5,0.5,dbloss,strmode,errno)
-    print(dbloss.value,',',strmode.value,',',errno.value,',',elevs[1],',',elevs[0])
+    print(dbloss.value,',',str(strmode.value).replace(",","-"),',',errno.value,',',elevs[1],',',elevs[0])
