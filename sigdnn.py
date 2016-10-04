@@ -10,33 +10,24 @@ def writeresults(preds,regressor,fname):
     f.write(str(x)+'\n')
   f.close()
 
-# Data sets.
-TRAINING = "s1_out.csv"
-TEST = "s2_out.csv"
+DATASET = "entire_dataset.csv"
 
 #get numpy ready datasets
-s1_dataset = np.genfromtxt('s1_out.csv', delimiter=',')
-s2_dataset = np.genfromtxt('s2_out.csv', delimiter=',')
+np_dataset = np.genfromtxt(DATASET, delimiter=',')
 
 # Take our the first column (the measured result) and concatinate i
 # into one array. This makes an array ready to feed the
 # predictor when trained.
-dnn_predictors = np.vstack((s1_dataset[:,1:],s2_dataset[:,1:]))
+np_predictors = np_dataset[:,1:]
 
 # Load datasets.
-training_set = learn.datasets.base.load_csv_without_header(
-                                                        filename=TRAINING,
-                                                        features_dtype=np.float32,
-                                                        target_column=0,
-                                                        target_dtype=np.float32)
-
 test_set = learn.datasets.base.load_csv_without_header(
-                                                    filename=TEST,
+                                                    filename=DATASET,
                                                     features_dtype=np.float32,
                                                     target_column=0,
                                                     target_dtype=np.float32)
 
-feature_columns = learn.infer_real_valued_columns_from_input(training_set.data)
+feature_columns = learn.infer_real_valued_columns_from_input(test_set.data)
 
 regressor = learn.DNNRegressor(
         feature_columns=feature_columns,
@@ -44,7 +35,7 @@ regressor = learn.DNNRegressor(
 
 lowest_loss = sys.float_info.max
 for x in range(100000):
-  regressor.fit(x=training_set.data,y=training_set.target,steps=100)
+  regressor.fit(x=test_set.data,y=test_set.target,steps=10000)
   loss = regressor.evaluate(x=test_set.data,y=test_set.target)['loss']
   if lowest_loss > loss:
     lowest_loss = loss
