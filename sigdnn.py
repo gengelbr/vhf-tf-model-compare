@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow.contrib.learn.python.learn as learn
 import numpy as np
 import sys
 
@@ -23,17 +24,23 @@ s2_dataset = np.genfromtxt('s2_out.csv', delimiter=',')
 dnn_predictors = np.vstack((s1_dataset[:,1:],s2_dataset[:,1:]))
 
 # Load datasets.
-training_set = tf.contrib.learn.datasets.base.load_csv( has_header=False,
+training_set = learn.datasets.base.load_csv_without_header(
                                                         filename=TRAINING,
+                                                        features_dtype=np.float32,
                                                         target_column=0,
-                                                        target_dtype=np.float64)
+                                                        target_dtype=np.float32)
 
-test_set = tf.contrib.learn.datasets.base.load_csv( has_header=False,
+test_set = learn.datasets.base.load_csv_without_header(
                                                     filename=TEST,
+                                                    features_dtype=np.float32,
                                                     target_column=0,
-                                                    target_dtype=np.float64)
+                                                    target_dtype=np.float32)
 
-regressor = tf.contrib.learn.DNNRegressor([512,256,128,64])
+feature_columns = learn.infer_real_valued_columns_from_input(training_set.data)
+
+regressor = learn.DNNRegressor(
+        feature_columns=feature_columns,
+        hidden_units=[512,256,128,64])
 
 lowest_loss = sys.float_info.max
 for x in range(100000):
@@ -45,6 +52,5 @@ for x in range(100000):
     lowest_dnn_bias = regressor.dnn_bias_
     np.save(open('lowest_dnn_weights.np','wb'),lowest_dnn_weights)
     np.save(open('lowest_dnn_bias.np','wb'),lowest_dnn_bias)
-
 
   print('Loss: {0:f}'.format(loss))
