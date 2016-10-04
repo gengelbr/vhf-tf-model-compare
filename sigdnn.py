@@ -1,7 +1,12 @@
 import tensorflow as tf
 import tensorflow.contrib.learn.python.learn as learn
+from tensorflow.python.platform import gfile
 import numpy as np
+import collections
 import sys
+import csv
+
+Dataset = collections.namedtuple('Dataset', ['data', 'target'])
 
 def writeresults(preds,regressor,fname):
   results = regressor.predict(preds)
@@ -10,9 +15,23 @@ def writeresults(preds,regressor,fname):
     f.write(str(x)+'\n')
   f.close()
 
-DATASET = "entire_dataset.csv"
+def load_csv(filename,target_dtype,features_dtype,target_column=-1):
+  """Load dataset from CSV file without a header row."""
+  with gfile.Open(filename) as csv_file:
+    data_file = csv.reader(csv_file)
+    data, target = [], []
+    for row in data_file:
+      target.append(row.pop(target_column))
+      data.append(np.asarray(row, dtype=features_dtype))
+    target = np.array(target, dtype=target_dtype)
+    data = np.array(data)
+  return Dataset(data=data, target=target)
+
+def splitset(tuple_set):
+  pass
 
 #get numpy ready datasets
+DATASET = sys.argv[1]
 np_dataset = np.genfromtxt(DATASET, delimiter=',')
 
 # Take our the first column (the measured result) and concatinate i
@@ -21,11 +40,11 @@ np_dataset = np.genfromtxt(DATASET, delimiter=',')
 np_predictors = np_dataset[:,1:]
 
 # Load datasets.
-test_set = learn.datasets.base.load_csv_without_header(
-                                                    filename=DATASET,
-                                                    features_dtype=np.float32,
-                                                    target_column=0,
-                                                    target_dtype=np.float32)
+test_set = load_csv(
+                   filename=DATASET,
+                   features_dtype=np.float32,
+                   target_column=0,
+                   target_dtype=np.float32)
 
 feature_columns = learn.infer_real_valued_columns_from_input(test_set.data)
 
