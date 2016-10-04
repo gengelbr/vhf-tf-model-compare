@@ -22,23 +22,44 @@ if __name__ == '__main__':
     gmaps = googlemaps.Client(key='AIzaSyDaB27bqXlow_jVRPUInx-enuxxTpi8AbY')
 
     origin = geopy.Point(39.826275,-105.08205)
+
+    header_row = ["Measured BPL Minus FSL",
+                  "Measured BPL",
+                  "Freespace Loss",
+                  "Distance (Meters)",
+                  "Std Elevations",
+                  "Total Elevation Delta",
+                  "Highest Point Delta",
+                  "Lowest Point Delta",
+                  "Total Path Delta",
+                  "Begin Elevations"]
+
+    outcsv.writerow(header_row)
+
+    i = 0
     for row in incsv:
+        i+=1
         lat = float(row['Latitude'])
         lon = float(row['Longitude'])
+        dist = [vincenty(origin,(lat,lon)).meters][0]
+        freespace_loss = (20*math.log10(dist) + 20*math.log10(3500) - 27.55)
+
+        #extract gmaps elevation data from path.
         res = gmaps.elevation_along_path([(39.826275,-105.08205),(lat,lon)],256)
         elevs = [float(pnt['elevation']) for pnt in res]
+
         stats = []
+        stats += [float(row['VSA_BPL']) - freespace_loss]
         stats += [row['VSA_BPL']]
+        stats += [str(freespace_loss)]
+        stats += [dist]
         stats += [np.std(elevs)]
         stats += [max(elevs) - min(elevs)]
-        stats += [np.percentile(elevs, 75) - np.percentile(elevs, 25)]
         stats += [max(elevs) - elevs[0]]
         stats += [min(elevs) - elevs[0]]
         stats += [elevs[0] - elevs[-1]]
-        dist = [vincenty(origin,(lat,lon)).meters][0]
-        stats += [dist]
-        stats += [20*math.log10(dist) + 20*math.log10(3500) - 27.55] #freespace meters\megahertz
         stats += elevs
-        print(stats)
+        #print(stats)
+        print("Row ",i)
         outcsv.writerow(stats)
     print(res)
